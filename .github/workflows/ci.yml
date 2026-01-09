@@ -1,3 +1,4 @@
+##novo commit##
 name: CI/CD Pipeline
 
 on:
@@ -12,7 +13,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11]
+        python-version: ['3.9', '3.10', '3.11']
     
     steps:
     - name: Checkout do código
@@ -30,12 +31,12 @@ jobs:
     
     - name: Executar testes com pytest
       run: |
-        pytest test_app.py -v --cov=app.py --cov-report=term-missing
+        pytest test_app.py -v --cov=app --cov-report=term-missing
     
     - name: Verificar qualidade do código
       run: |
-        flake8 . --max-line-length=120 --ignore=E402,W503
-
+        flake8 app.py test_app.py --max-line-length=120 --ignore=E402,W503
+  
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -48,4 +49,8 @@ jobs:
       run: |
         echo "Estrutura do projeto:"
         ls -la
+        echo ""
+        echo "Arquivos Python encontrados:"
+        find . -name "*.py" -type f
+        echo ""
         echo "Build concluído com sucesso!"
