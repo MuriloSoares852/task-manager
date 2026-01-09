@@ -30,13 +30,12 @@ jobs:
     
     - name: Executar testes com pytest
       run: |
-        pytest test_app.py -v --cov=app --cov-report=term-missing
+        pytest test_app.py -v --cov=app.py --cov-report=term-missing
     
     - name: Verificar qualidade do código
       run: |
-        pip install flake8
-        flake8 app.py --max-line-length=120 --ignore=E402,W503
-  
+        flake8 . --max-line-length=120 --ignore=E402,W503
+
   build:
     needs: test
     runs-on: ubuntu-latest
