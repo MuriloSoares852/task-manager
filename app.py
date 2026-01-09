@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 import sqlite3
 import os
@@ -8,11 +8,15 @@ app = Flask(__name__)
 # Configuração do banco de dados
 DATABASE = 'tasks.db'
 
+
 def get_db_connection():
     """Cria conexão com o banco de dados SQLite"""
-    conn = sqlite3.connect(DATABASE)
+    # Usa o DATABASE configurado (permite override nos testes)
+    db_path = app.config.get('DATABASE', DATABASE)
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def init_db():
     """Inicializa o banco de dados com a tabela de tarefas"""
@@ -31,8 +35,11 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Inicializa o banco ao iniciar a aplicação
-init_db()
+
+# Inicializa o banco ao iniciar a aplicação (apenas se não estiver em teste)
+if not app.config.get('TESTING'):
+    init_db()
+
 
 @app.route('/')
 def index():
@@ -41,6 +48,7 @@ def index():
     tasks = conn.execute('SELECT * FROM tasks ORDER BY created_at DESC').fetchall()
     conn.close()
     return render_template('index.html', tasks=tasks)
+
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
@@ -63,6 +71,7 @@ def get_tasks():
     
     return jsonify(tasks_list)
 
+
 @app.route('/api/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
     """API: Retorna uma tarefa específica (READ)"""
@@ -82,6 +91,7 @@ def get_task(task_id):
         'created_at': task['created_at'],
         'updated_at': task['updated_at']
     })
+
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
@@ -110,6 +120,7 @@ def create_task():
         'message': 'Tarefa criada com sucesso',
         'id': task_id
     }), 201
+
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
@@ -140,6 +151,7 @@ def update_task(task_id):
     
     return jsonify({'message': 'Tarefa atualizada com sucesso'})
 
+
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
     """API: Deleta uma tarefa (DELETE)"""
@@ -156,11 +168,15 @@ def delete_task(task_id):
     
     return jsonify({'message': 'Tarefa deletada com sucesso'})
 
+
 @app.route('/api/tasks/status/<status>', methods=['GET'])
 def get_tasks_by_status(status):
     """API: Retorna tarefas filtradas por status"""
     conn = get_db_connection()
-    tasks = conn.execute('SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC', (status,)).fetchall()
+    tasks = conn.execute(
+        'SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC',
+        (status,)
+    ).fetchall()
     conn.close()
     
     tasks_list = []
@@ -175,6 +191,7 @@ def get_tasks_by_status(status):
         })
     
     return jsonify(tasks_list)
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
