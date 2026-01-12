@@ -1,3 +1,8 @@
+# MUDANÇA DE ESCOPO (Data: [12/01/2026])
+# Adicionado sistema de prioridades (Baixa, media, alta)
+# Justificativa: Cliente solicitou categorização de urgência
+
+
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 import sqlite3
